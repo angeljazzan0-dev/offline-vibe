@@ -1,0 +1,64 @@
+{
+  "expo": {
+    "name": "Offline Vibe",
+    "slug": "offline-vibe",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "offlinevibe",
+    "userInterfaceStyle": "dark",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.offlinevibe.app",
+      "infoPlist": {
+        "UIBackgroundModes": [
+          "audio",
+          "audio"
+        ],
+        "CFBundleDocumentTypes": [
+          {
+            "CFBundleTypeName": "Audio MP3",
+            "CFBundleTypeRole": "Viewer",
+            "LSHandlerRank": "Alternate",
+            "LSItemContentTypes": [
+              "public.mp3",
+              "public.audio",
+              "public.mpeg-4-audio"
+            ]
+          },
+          {
+            "CFBundleTypeName": "Audio MP3",
+            "CFBundleTypeRole": "Viewer",
+            "LSHandlerRank": "Alternate",
+            "LSItemContentTypes": [
+              "public.mp3",
+              "public.audio",
+              "public.mpeg-4-audio"
+            ]
+          }
+        ],
+        "LSSupportsOpeningDocumentsInPlace": false,
+        "UISupportsDocumentBrowser": false,
+        "ITSAppUsesNonExemptEncryption": false
+      },
+      "entitlements": {
+        "com.apple.security.application-groups": [
+          "group.com.offlinevibe.app",
+          "group.com.offlinevibe.app"
+        ]
+      }
+    },
+    "android": {
+      "package": "com.offlinevibe.app",
+      "permissions": [
+        "android.permission.WAKE_LOCK",
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"
+      ]
+    },
+    "extra": {
+      "eas": {
+        "projectId": "61492b9b-5230-4a60-8332-550e0871bf3f"
+      }
+    }
+  }
+}
