@@ -5,17 +5,20 @@ on:
 
 jobs:
   build:
-    runs-on: macos-14
+    runs-on: macos-15
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Select Latest Xcode 16
+      - name: Set Xcode Version
         run: |
-          XCODE_PATH=$(ls -d /Applications/Xcode_16*.app | sort -V | tail -n 1)
-          echo "Usando versión de Xcode en: $XCODE_PATH"
-          sudo xcode-select -s "$XCODE_PATH/Contents/Developer"
-          echo "DEVELOPER_DIR=$XCODE_PATH/Contents/Developer" >> $GITHUB_ENV
+          echo "Versiones de Xcode instaladas en el sistema:"
+          ls -d /Applications/Xcode*.app
+          XCODE_APP=$(ls -d /Applications/Xcode*.app | sort -V | tail -n 1)
+          echo "Seleccionando: $XCODE_APP"
+          sudo xcode-select -s "$XCODE_APP/Contents/Developer"
+          echo "DEVELOPER_DIR=$XCODE_APP/Contents/Developer" >> $GITHUB_ENV
+          xcodebuild -version
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -26,8 +29,14 @@ jobs:
       - name: Install npm dependencies
         run: npm install --legacy-peer-deps
 
-      - name: Prebuild iOS Project
-        run: npx expo prebuild --platform ios --clean
+      - name: Prebuild iOS Project (Sin Pods automáticos)
+        run: npx expo prebuild --platform ios --clean --no-install
+
+      - name: Install CocoaPods
+        run: |
+          cd ios
+          pod install --repo-update
+          cd ..
 
       - name: Build iOS Archive (Unsigned)
         run: |
