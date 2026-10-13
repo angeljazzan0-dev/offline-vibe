@@ -4,7 +4,7 @@
     "strict": true,
     "skipLibCheck": true,
     "experimentalDecorators": true,
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "types": []
   },
   "include": [
