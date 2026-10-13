@@ -15,14 +15,13 @@ jobs:
         with:
           node-version: 22
 
-      - name: Forzar Downgrade a Expo 51 en la Nube
+      - name: Purgar Expo 57 y Forzar suite Expo 51
         run: |
-          echo "Eliminando rastros de Expo 57..."
-          rm -f package-lock.json
-          rm -rf node_modules
-          echo "Instalando versiones estrictas de Expo 51..."
-          npm install expo@~51.0.28 react-native@0.74.5 react@18.2.0 react-native-safe-area-context@4.10.5 @types/react@~18.2.79 typescript@~5.3.3 --legacy-peer-deps
-          npx expo install --fix
+          echo "Borrando caché y bloqueos viejos..."
+          rm -rf node_modules package-lock.json ios
+          
+          echo "Sobrescribiendo TODAS las librerías a la versión 51..."
+          npm install expo@~51.0.28 expo-file-system@~17.0.1 expo-document-picker@~12.0.2 expo-linking@~6.3.1 expo-status-bar@~1.12.1 react-native@0.74.5 react@18.2.0 react-native-safe-area-context@4.10.5 @types/react@~18.2.79 typescript@~5.3.3 --save --legacy-peer-deps
 
       - name: Prebuild iOS
         run: npx expo prebuild --platform ios --clean
