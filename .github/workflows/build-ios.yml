@@ -5,29 +5,26 @@ on:
 
 jobs:
   build:
-    runs-on: macos-14
+    runs-on: macos-15
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Configurar Xcode Automático (Resuelve Swift 6.2.0)
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: 'latest-stable'
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
 
-      - name: Limpieza y Reinstalacion Pura
-        run: |
-          rm -f package-lock.json
-          npm install --legacy-peer-deps
+      - name: Instalar Dependencias
+        run: npm install --legacy-peer-deps
 
       - name: Prebuild iOS
         run: npx expo prebuild --platform ios --clean
-
-      - name: Hack - Aniquilar Package.swift
-        run: |
-          echo "Borrando archivos Package.swift para evadir el escaneo automatico de Xcode..."
-          find node_modules -name "Package.swift" -type f -delete
-          find ios -name "Package.swift" -type f -delete || true
 
       - name: Build iOS Archive (Unsigned)
         run: |
