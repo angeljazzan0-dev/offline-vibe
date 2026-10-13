@@ -17,6 +17,7 @@ import TrackPlayer, {
 import { AcousticVectorBadge } from '../components/AcousticVectorBadge';
 import { DynamicIslandPreview } from '../components/DynamicIslandWidget';
 import { InfiniteQueueModal } from '../components/InfiniteQueueModal';
+import { pickAndImportAudio } from '../services/telegramIngest';
 
 const { width } = Dimensions.get('window');
 
@@ -41,6 +42,12 @@ export const NowPlayingScreen: React.FC = () => {
     const mins = Math.floor(secs / 60);
     const rem = Math.floor(secs % 60);
     return `${mins}:${rem < 10 ? '0' : ''}${rem}`;
+  };
+
+  // Callback opcional cuando una pista se importa de forma exitosa
+  const handleTrackImported = (track: any) => {
+    console.log('Pista importada en pantalla:', track.title);
+    // Si necesitas recargar tu lista local o añadirla automáticamente al reproductor, hazlo aquí
   };
 
   return (
@@ -82,10 +89,15 @@ export const NowPlayingScreen: React.FC = () => {
             <Text style={styles.trackTitle} numberOfLines={1}>
               {activeTrack?.title || 'Sin tema seleccionado'}
             </Text>
-            <Text style={styles.trackArtist} numberOfLines={1}>
-              {activeTrack?.artist || 'Biblioteca local'}
-            </Text>
+            
+            {/* BOTÓN DE IMPORTAR MÚSICA: Al tocar "Biblioteca local" se abre el explorador de archivos nativo */}
+            <Pressable onPress={() => pickAndImportAudio(handleTrackImported)}>
+              <Text style={styles.trackArtist} numberOfLines={1}>
+                {activeTrack?.artist || '📁 Toca aquí para importar música'}
+              </Text>
+            </Pressable>
           </View>
+
           <Pressable
             onPress={() => setIsQueueVisible(true)}
             style={styles.queueButton}
@@ -184,7 +196,7 @@ const styles = StyleSheet.create({
   titleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
   textContainer: { flex: 1, marginRight: 12 },
   trackTitle: { color: '#ffffff', fontSize: 22, fontWeight: '700', letterSpacing: -0.5 },
-  trackArtist: { color: '#94a3b8', fontSize: 14, marginTop: 2 },
+  trackArtist: { color: '#a78bfa', fontSize: 14, marginTop: 2, textDecorationLine: 'underline' },
   queueButton: { backgroundColor: '#1e1b4b', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 14, borderWidth: 1, borderColor: '#4338ca' },
   queueButtonText: { color: '#c7d2fe', fontSize: 11, fontWeight: '700' },
   scrubberSection: { marginVertical: 10 },
