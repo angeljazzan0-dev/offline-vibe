@@ -1,5 +1,7 @@
 import * as FileSystem from 'expo-file-system';
 import * as Linking from 'expo-linking';
+import * as DocumentPicker from 'expo-document-picker';
+import { Alert } from 'react-native';
 import { database } from '../database';
 import Track from '../database/models/Track';
 
@@ -8,25 +10,85 @@ export interface TelegramIncomingFile {
   sourceUri: string;
 }
 
+// 1. LISTENER AUTOMÁTICO (Para Telegram, WhatsApp o "Compartir con")
 export function setupTelegramShareListener(onTrackIngested: (track: Track) => void): () => void {
-  const subscription = Linking.addEventListener('url', async ({ url }) => {
-    const parsed = Linking.parse(url);
-    if (parsed.scheme === 'offlinevibe' && parsed.hostname === 'import') {
-      const filename = (parsed.queryParams?.filename as string) || `telegram_${Date.now()}.mp3`;
-      const sourceUri = parsed.queryParams?.sourceUri as string;
+  const handleUrl = async (url: string | null) => {
+    if (!url) return;
 
-      if (sourceUri) {
-        const track = await ingestTelegramAudio({ originalFilename: filename, sourceUri });
-        if (track) {
-          onTrackIngested(track);
-        }
+    // DEBUG: Verás este popup en tu iPhone si iOS le entregó el archivo correctamente a la app
+    Alert.alert('Ruta detectada', url);
+
+    let filename = '';
+    // IMPORTANTE: Mantenemos la URL original (con %20) para que FileSystem la encuentre
+    let sourceUri = url; 
+
+    // CASO A: Archivo compartido nativamente por iOS (file://...)
+    if (url.startsWith('file://')) {
+      const decodedUrl = decodeURI(url);
+      filename = decodedUrl.split('/').pop() || `audio_${Date.now()}.mp3`;
+    } 
+    // CASO B: Deep link de OfflineVibe
+    else {
+      const decodedUrl = decodeURI(url);
+      const parsed = Linking.parse(decodedUrl);
+      if (parsed.scheme === 'offlinevibe' && parsed.hostname === 'import') {
+        filename = (parsed.queryParams?.filename as string) || `telegram_${Date.now()}.mp3`;
+        sourceUri = (parsed.queryParams?.sourceUri as string) || url;
       }
     }
+
+    if (sourceUri) {
+      console.log('Ingestando archivo desde:', sourceUri);
+      const track = await ingestTelegramAudio({ originalFilename: filename, sourceUri });
+      if (track) {
+        onTrackIngested(track);
+        Alert.alert('¡Éxito!', `Pista añadida: ${filename}`);
+      }
+    }
+  };
+
+  // Escuchar cuando la app ya está abierta de fondo
+  const subscription = Linking.addEventListener('url', ({ url }) => {
+    handleUrl(url);
   });
+
+  // Escuchar cuando la app estaba cerrada (arranque en frío)
+  Linking.getInitialURL().then(handleUrl);
 
   return () => subscription.remove();
 }
 
+// 2. BOTÓN MANUAL (Abre la app nativa "Archivos" de iOS)
+export async function pickAndImportAudio(onTrackIngested: (track: Track) => void) {
+  try {
+    const result = await DocumentPicker.getDocumentAsync({
+      type: ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/x-m4a', 'audio/*'],
+      copyToCacheDirectory: false, 
+      multiple: true,
+    });
+
+    if (result.canceled || !result.assets) return;
+
+    let importedCount = 0;
+    for (const asset of result.assets) {
+      const track = await ingestTelegramAudio({
+        originalFilename: asset.name,
+        sourceUri: asset.uri
+      });
+      if (track) {
+        onTrackIngested(track);
+        importedCount++;
+      }
+    }
+    
+    Alert.alert('Importación completada', `${importedCount} pista(s) añadida(s) a la biblioteca.`);
+  } catch (err) {
+    console.error('Error seleccionando documentos:', err);
+    Alert.alert('Error', 'No se pudo importar la música.');
+  }
+}
+
+// 3. MOTOR DE INGESTA ORIGINAL (Intacto)
 export async function ingestTelegramAudio(incoming: TelegramIncomingFile): Promise<Track | null> {
   try {
     const sanitizedFilename = incoming.originalFilename.replace(/[^a-zA-Z0-9._-]/g, '_');
