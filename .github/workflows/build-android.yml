@@ -21,9 +21,6 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
       - name: Instalar dependencias purificadas
         run: |
           rm -rf node_modules package-lock.json android
@@ -32,14 +29,14 @@ jobs:
       - name: Prebuild Android
         run: npx expo prebuild --platform android --clean
 
-      - name: Compilar APK (Release)
+      - name: Compilar APK (Debug)
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleRelease --no-daemon
+          ./gradlew assembleDebug --no-daemon
 
       - name: Subir APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: OfflineVibe-Android-APK
-          path: android/app/build/outputs/apk/release/*.apk
+          path: android/app/build/outputs/apk/debug/*.apk
