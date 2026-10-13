@@ -5,13 +5,17 @@ on:
 
 jobs:
   build:
-    runs-on: macos-14
-    env:
-      # Esto fuerza a TODO el sistema a usar Xcode 16.1 sin importar qué
-      DEVELOPER_DIR: /Applications/Xcode_16.1.app/Contents/Developer
+    runs-on: macos-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Force Latest Xcode
+        run: |
+          LATEST_XCODE=$(ls -d /Applications/Xcode*.app | sort -V | tail -n 1)
+          echo "Usando la versión más reciente: $LATEST_XCODE"
+          sudo xcode-select -s "$LATEST_XCODE/Contents/Developer"
+          echo "DEVELOPER_DIR=$LATEST_XCODE/Contents/Developer" >> $GITHUB_ENV
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -19,17 +23,11 @@ jobs:
           node-version: 22
           cache: npm
 
-      - name: Install npm dependencies
+      - name: Install dependencies
         run: npm install --legacy-peer-deps
 
-      - name: Prebuild iOS Project
-        run: npx expo prebuild --platform ios --clean --no-install
-
-      - name: Install CocoaPods
-        run: |
-          cd ios
-          pod install --repo-update
-          cd ..
+      - name: Prebuild iOS (Autoinstala Pods)
+        run: npx expo prebuild --platform ios --clean
 
       - name: Build iOS Archive (Unsigned)
         run: |
