@@ -10,23 +10,24 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Select Stable Xcode 15.4
-        run: |
-          sudo xcode-select -s /Applications/Xcode_15.4.app/Contents/Developer
-          echo "DEVELOPER_DIR=/Applications/Xcode_15.4.app/Contents/Developer" >> $GITHUB_ENV
-          xcodebuild -version
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: npm
+          node-version: 22
 
-      - name: Install dependencies
-        run: npm install --legacy-peer-deps
+      - name: Limpieza y Reinstalacion Pura
+        run: |
+          rm -f package-lock.json
+          npm install --legacy-peer-deps
 
       - name: Prebuild iOS
         run: npx expo prebuild --platform ios --clean
+
+      - name: Hack - Aniquilar Package.swift
+        run: |
+          echo "Borrando archivos Package.swift para evadir el escaneo automatico de Xcode..."
+          find node_modules -name "Package.swift" -type f -delete
+          find ios -name "Package.swift" -type f -delete || true
 
       - name: Build iOS Archive (Unsigned)
         run: |
