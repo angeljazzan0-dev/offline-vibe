@@ -29,10 +29,19 @@ jobs:
       - name: Prebuild Android
         run: npx expo prebuild --platform android --clean
 
-      - name: Fix Missing Splash Screen Color
+      - name: Inyectar colores de sistema blindados
         run: |
           mkdir -p android/app/src/main/res/values
-          echo '<?xml version="1.0" encoding="utf-8"?><resources><color name="splashscreen_background">#000000</color></resources>' > android/app/src/main/res/values/colors.xml
+          cat <<EOF > android/app/src/main/res/values/colors.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+              <color name="splashscreen_background">#050508</color>
+              <color name="colorPrimary">#050508</color>
+              <color name="colorPrimaryDark">#050508</color>
+              <color name="colorAccent">#8B5CF6</color>
+              <color name="iconBackground">#050508</color>
+          </resources>
+          EOF
 
       - name: Compilar APK (Debug)
         run: |
